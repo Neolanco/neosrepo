@@ -1,0 +1,60 @@
+# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Modified for Hyprland by @Arxari
+pkgname=xdg-desktop-portal-gnome
+pkgver=47.1
+pkgrel=2
+pkgdesc="GNOME desktop portal modified to work on Hyprland"
+url="https://gitlab.gnome.org/GNOME/xdg-desktop-portal-gnome"
+arch=(x86_64)
+license=(LGPL-2.1-or-later)
+depends=(
+  cairo
+  dconf
+  fontconfig
+  gcc-libs
+  gdk-pixbuf2
+  glib2
+  glibc
+  gnome-desktop-4
+  graphene
+  gtk4
+  libadwaita
+  libx11
+  nautilus
+  wayland
+  xdg-desktop-portal
+  'xdg-desktop-portal-gtk>=1.10.0-2'
+)
+makedepends=(
+  git
+  glib2-devel
+  meson
+)
+optdepends=('evince: Print previews')
+provides=(xdg-desktop-portal-impl)
+conflicts=('xdg-desktop-portal-gtk<1.10.0-2')
+replaces=('xdg-desktop-portal-gtk<1.10.0-2')
+groups=(gnome)
+source=("git+https://gitlab.gnome.org/GNOME/xdg-desktop-portal-gnome.git#tag=${pkgver/[a-z]/.&}")
+b2sums=('46c3ebd0016eae9067332f242bb90de08a461a7624edb3ce3c7743894da8b06ee127159a4cfb36477b97a4b2963d5a334208a3825530c03d0f9269787ec385cc')
+
+prepare() { # this makes the changes required for it to work on Hyprland
+  cd $pkgname
+  sed -i 's/static gboolean settings_only = TRUE/static gboolean settings_only = FALSE/' src/xdg-desktop-portal-gnome.c
+  sed -i 's/settings_only = TRUE/settings_only = FALSE/' src/xdg-desktop-portal-gnome.c
+}
+
+build() {
+  arch-meson $pkgname build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
+# vim:set sw=2 sts=-1 et:
